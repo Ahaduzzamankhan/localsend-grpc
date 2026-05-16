@@ -1,0 +1,71 @@
+syntax = "proto3";
+package localsend;
+
+service LocalSend {
+  rpc GetInfo(Empty) returns (DeviceInfo);
+  rpc Register(DeviceInfo) returns (DeviceInfo);
+  rpc PrepareUpload(PrepareUploadRequest) returns (PrepareUploadResponse);
+  rpc Upload(stream FileChunk) returns (UploadResponse);
+  rpc PrepareDownload(Empty) returns (PrepareDownloadResponse);
+  rpc Download(DownloadRequest) returns (stream FileChunk);
+  rpc Cancel(CancelRequest) returns (Empty);
+}
+
+message Empty {}
+
+message DeviceInfo {
+  string alias = 1;
+  string version = 2;
+  string device_model = 3;
+  string device_type = 4;
+  string fingerprint = 5;
+  int32 port = 6;
+  string protocol = 7;
+  bool download = 8;
+}
+
+message FileMetadata {
+  int64 file_size = 1;
+  string file_name = 2;
+  string file_type = 3;
+  optional string hash = 4;
+  optional string preview = 5;
+  optional int64 last_modified = 6;
+}
+
+message PrepareUploadRequest {
+  DeviceInfo sender_info = 1;
+  map<string, FileMetadata> files = 2;
+}
+
+message PrepareUploadResponse {
+  string session_id = 1;
+  map<string, string> file_tokens = 2;
+}
+
+message FileChunk {
+  string session_id = 1;
+  string file_id = 2;
+  string token = 3;
+  bytes data = 4;
+  bool is_last = 5;
+}
+
+message UploadResponse {
+  bool success = 1;
+}
+
+message PrepareDownloadResponse {
+  string session_id = 1;
+  map<string, FileMetadata> files = 2;
+}
+
+message DownloadRequest {
+  string session_id = 1;
+  string file_id = 2;
+  string token = 3;
+}
+
+message CancelRequest {
+  string session_id = 1;
+}
