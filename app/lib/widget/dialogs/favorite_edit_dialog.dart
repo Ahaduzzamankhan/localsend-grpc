@@ -39,12 +39,15 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
   void initState() {
     super.initState();
 
-    _ipController.text = widget.prefilledDevice?.ip ?? widget.favorite?.ip ?? '';
-    _aliasController.text = widget.prefilledDevice?.alias ?? widget.favorite?.alias ?? '';
+    _ipController.text =
+        widget.prefilledDevice?.ip ?? widget.favorite?.ip ?? '';
+    _aliasController.text =
+        widget.prefilledDevice?.alias ?? widget.favorite?.alias ?? '';
 
     ensureRef((ref) {
-      _portController.text =
-          widget.prefilledDevice?.port.toString() ?? widget.favorite?.port.toString() ?? ref.read(settingsProvider).port.toString();
+      _portController.text = widget.prefilledDevice?.port.toString() ??
+          widget.favorite?.port.toString() ??
+          ref.read(settingsProvider).port.toString();
     });
   }
 
@@ -59,7 +62,11 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.favorite != null ? t.dialogs.favoriteEditDialog.titleEdit : t.dialogs.favoriteEditDialog.titleAdd),
+      title: Text(
+        widget.favorite != null
+            ? t.dialogs.favoriteEditDialog.titleEdit
+            : t.dialogs.favoriteEditDialog.titleAdd,
+      ),
       content: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
@@ -80,7 +87,8 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
             const SizedBox(height: 5),
             TextFormField(
               controller: _ipController,
-              autofocus: widget.favorite == null && widget.prefilledDevice == null,
+              autofocus:
+                  widget.favorite == null && widget.prefilledDevice == null,
               enabled: !_fetching,
             ),
             const SizedBox(height: 16),
@@ -100,11 +108,17 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
                 onPressed: () async {
                   final result = await showDialog<bool>(
                     context: context,
-                    builder: (_) => FavoriteDeleteDialog(widget.favorite!),
+                    builder: (_) =>
+                        FavoriteDeleteDialog(widget.favorite!),
                   );
 
                   if (context.mounted && result == true) {
-                    await context.ref.redux(favoritesProvider).dispatchAsync(RemoveFavoriteAction(deviceFingerprint: widget.favorite!.fingerprint));
+                    await context.ref.redux(favoritesProvider).dispatchAsync(
+                          RemoveFavoriteAction(
+                            deviceFingerprint:
+                                widget.favorite!.fingerprint,
+                          ),
+                        );
                     if (context.mounted) {
                       context.pop();
                     }
@@ -119,7 +133,12 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
                 padding: const EdgeInsets.only(top: 10),
                 child: Row(
                   children: [
-                    Text(t.general.error, style: TextStyle(color: Theme.of(context).colorScheme.warning)),
+                    Text(
+                      t.general.error,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.warning,
+                      ),
+                    ),
                     if (_error != null) ...[
                       const SizedBox(width: 5),
                       InkWell(
@@ -130,8 +149,13 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
                           );
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: Icon(Icons.info, color: Theme.of(context).colorScheme.warning, size: 20),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 5),
+                          child: Icon(
+                            Icons.info,
+                            color: Theme.of(context).colorScheme.warning,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
@@ -159,27 +183,24 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
                   }
 
                   if (widget.favorite != null) {
-                    // Update existing favorite
                     final existingFavorite = widget.favorite!;
                     final trimmedNewAlias = _aliasController.text.trim();
                     if (trimmedNewAlias.isEmpty) {
                       return;
                     }
 
-                    await ref
-                        .redux(favoritesProvider)
-                        .dispatchAsync(
+                    await ref.redux(favoritesProvider).dispatchAsync(
                           UpdateFavoriteAction(
                             existingFavorite.copyWith(
                               ip: _ipController.text,
                               port: int.parse(_portController.text),
                               alias: trimmedNewAlias,
-                              customAlias: existingFavorite.customAlias || trimmedNewAlias != existingFavorite.alias,
+                              customAlias: existingFavorite.customAlias ||
+                                  trimmedNewAlias != existingFavorite.alias,
                             ),
                           ),
                         );
                   } else {
-                    // Add new favorite
                     final ip = _ipController.text;
                     final port = int.parse(_portController.text);
                     final https = ref.read(settingsProvider).https;
@@ -188,28 +209,29 @@ class _FavoriteEditDialogState extends State<FavoriteEditDialog> with Refena {
                     });
 
                     try {
-                      final payload = ref.read(deviceFullInfoProvider).toRegisterDto();
-                      final response = await ref
-                          .read(httpProvider)
-                          .v2
-                          .register(
-                        protocol: https ? ProtocolType.https : ProtocolType.http,
-                        ip: ip,
-                        port: port,
-                        payload: payload,
-                      );
+                      final payload =
+                          ref.read(deviceFullInfoProvider).toRegisterDto();
+                      final response =
+                          await ref.read(httpProvider).v2.register(
+                                protocol: https
+                                    ? ProtocolType.https
+                                    : ProtocolType.http,
+                                ip: ip,
+                                port: port,
+                                payload: payload,
+                              );
 
                       final name = _aliasController.text.trim();
 
-                      await ref
-                          .redux(favoritesProvider)
-                          .dispatchAsync(
+                      await ref.redux(favoritesProvider).dispatchAsync(
                             AddFavoriteAction(
                               FavoriteDevice.fromValues(
                                 fingerprint: response.body.token,
                                 ip: _ipController.text,
                                 port: int.parse(_portController.text),
-                                alias: name.isEmpty ? response.body.alias : name,
+                                alias: name.isEmpty
+                                    ? response.body.alias
+                                    : name,
                               ),
                             ),
                           );
